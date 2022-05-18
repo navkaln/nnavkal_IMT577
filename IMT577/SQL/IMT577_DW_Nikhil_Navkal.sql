@@ -1,7 +1,7 @@
 /*****************************************
 Course: IMT 577
 Instructor: Sean Pettersen
-IT Session: 6
+Module: 6
 Date: 5/10/2022
 Notes: Create dimension tables & load.
 
@@ -110,7 +110,7 @@ SELECT * FROM Dim_Store;
 CREATE OR REPLACE TABLE Dim_Store(
     DimStoreID INT IDENTITY(1,1) CONSTRAINT PK_DimStoreID PRIMARY KEY NOT NULL  --Surrogate Key
     ,DimLocationID INTEGER CONSTRAINT FK_DimLocationIDCustomer FOREIGN KEY REFERENCES Dim_Location (DimLocationID) NOT NULL
-	,SourceLocationID INTEGER NOT NULL  --Foreign key to Dim_Location but integrity not enforced
+	,SourceStoreID INTEGER NOT NULL  --Foreign key to Dim_Location but integrity not enforced
     ,StoreNumber VARCHAR(255) NOT NULL
     ,StoreManager VARCHAR(255) NOT NULL
 );
@@ -123,7 +123,7 @@ INSERT INTO Dim_Store
 (
     DimStoreID
     ,DimLocationID
-    ,SourceLocationID
+    ,SourceStoreID
     ,StoreNumber
     ,StoreManager
 )
@@ -140,7 +140,7 @@ VALUES
 INSERT INTO DIM_STORE
 (
     DimLocationID
-    ,SourceLocationID
+    ,SourceStoreID
     ,StoreNumber
     ,StoreManager
 )
@@ -172,7 +172,7 @@ SELECT * FROM Dim_Reseller;
 CREATE OR REPLACE TABLE Dim_Reseller(
     DimResellerID INT IDENTITY(1,1) CONSTRAINT PK_DimResellerID PRIMARY KEY NOT NULL  --Surrogate Key
     ,DimLocationID INTEGER CONSTRAINT FK_DimLocationIDCustomer FOREIGN KEY REFERENCES Dim_Location (DimLocationID) NOT NULL
-	,SourceLocationID INTEGER NOT NULL --Foreign key to Dim_Location but integrity not enforced
+	,SourceResellerID INTEGER NOT NULL --Foreign key to Dim_Location but integrity not enforced
     ,ResellerName VARCHAR(255) NOT NULL
     ,ContactName VARCHAR(255) NOT NULL
     ,PhoneNumber VARCHAR(255) NOT NULL
@@ -186,7 +186,7 @@ INSERT INTO Dim_Reseller
 (
     DimResellerID
     ,DimLocationID
-    ,SourceLocationID
+    ,SourceResellerID
     ,ResellerName
     ,ContactName
     ,PhoneNumber
@@ -210,7 +210,7 @@ SELECT * FROM Dim_Reseller;
 INSERT INTO Dim_Reseller
 (
     DimLocationID
-    ,SourceLocationID
+    ,SourceResellerID
     ,ResellerName
     ,ContactName
     ,PhoneNumber
@@ -246,7 +246,7 @@ SELECT * FROM Dim_Customer;
 CREATE OR REPLACE TABLE Dim_Customer(
     DimCustomerID INT IDENTITY(1,1) CONSTRAINT PK_DimCustomerID PRIMARY KEY NOT NULL  --Surrogate Key
     ,DimLocationID INTEGER CONSTRAINT FK_DimLocationIDCustomer FOREIGN KEY REFERENCES Dim_Location (DimLocationID) NOT NULL
-	,SourceLocationID INTEGER NOT NULL  --Foreign key to Dim_Location but integrity not enforced
+	,SourceCustomerID INTEGER NOT NULL  --Foreign key to Dim_Location but integrity not enforced
     ,FullName VARCHAR(255) NOT NULL
     ,FirstName VARCHAR(255) NOT NULL
     ,LastName VARCHAR(255) NOT NULL
@@ -260,7 +260,7 @@ INSERT INTO Dim_Customer
 (
     DimCustomerID
     ,DimLocationID
-    ,SourceLocationID
+    ,SourceCustomerID
     ,FullName
     ,FirstName
     ,LastName
@@ -288,7 +288,7 @@ SELECT * FROM Dim_Customer;
 INSERT INTO Dim_Customer
 (
     DimLocationID
-    ,SourceLocationID
+    ,SourceCustomerID
     ,FullName
     ,FirstName
     ,LastName
@@ -326,7 +326,7 @@ SELECT * FROM Dim_Channel;
 
 --CREATE TABLE
 CREATE OR REPLACE TABLE Dim_Channel(
-    Dim_ChannelID INT IDENTITY(1,1) CONSTRAINT PK_DimChannelID PRIMARY KEY NOT NULL  --Surrogate Key
+    DimChannelID INT IDENTITY(1,1) CONSTRAINT PK_DimChannelID PRIMARY KEY NOT NULL  --Surrogate Key
     ,SourceChannelID INTEGER NOT NULL
 	,SourceChannelCategoryID INTEGER NOT NULL
     ,ChannelName VARCHAR(255) NOT NULL
@@ -336,7 +336,7 @@ CREATE OR REPLACE TABLE Dim_Channel(
 --Insert Unknown Members
 INSERT INTO Dim_Channel
 (
-    Dim_ChannelID
+    DimChannelID
     ,SourceChannelID
     ,SourceChannelCategoryID
     ,ChannelName
@@ -387,7 +387,7 @@ SELECT * FROM Dim_Product;
 
 --CREATE TABLE
 CREATE OR REPLACE TABLE Dim_Product(
-    Dim_ProductID INT IDENTITY(1,1) CONSTRAINT PK_DimProductID PRIMARY KEY NOT NULL  --Surrogate Key
+    DimProductID INT IDENTITY(1,1) CONSTRAINT PK_DimProductID PRIMARY KEY NOT NULL  --Surrogate Key
     ,SourceProductID INTEGER NOT NULL
 	,SourceProductTypeID INTEGER NOT NULL
     ,SourceProductCategoryID INTEGER NOT NULL
@@ -405,7 +405,7 @@ CREATE OR REPLACE TABLE Dim_Product(
 --add unknown members
 INSERT INTO Dim_Product
 (
-    Dim_ProductID
+    DimProductID
     ,SourceProductID
     ,SourceProductTypeID
     ,SourceProductCategoryID
@@ -463,8 +463,8 @@ SELECT
     STAGE_PRODUCT.WholesalePrice,
     STAGE_PRODUCT.Cost,
     STAGE_PRODUCT.Price - STAGE_PRODUCT.Cost AS ProductRetailProfit,
-    STAGE_PRODUCT.Price - STAGE_PRODUCT.WholesalePrice AS ProductWholesaleUnitProfit,
-    ROUND(100 * DIV0(ProductRetailProfit, STAGE_PRODUCT.Cost), 3) AS ProductProfitMarginUnitPercent
+    STAGE_PRODUCT.WholesalePrice - STAGE_PRODUCT.Cost AS ProductWholesaleUnitProfit,
+    ROUND(100 * DIV0(ProductRetailProfit, STAGE_PRODUCT.Price), 3) AS ProductProfitMarginUnitPercent
 FROM
     STAGE_PRODUCT,
     STAGE_PRODUCTCATEGORY,
